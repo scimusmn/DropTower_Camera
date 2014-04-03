@@ -1,0 +1,7 @@
+movieGrabberExample.*
+bin/*.*
+bin/data/temp/*
+ipch/*
+obj/*
+*.opensdf
+*.suo
