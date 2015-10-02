@@ -2,10 +2,12 @@
 
 ofColor blck(3,3,3);
 ofColor wht(250,250,250);
-ofColor blu(0x00,0xB5,0xAD);
-ofColor ltgry(100,100,100);
-ofColor chrcl(51,51,51);
-ofColor yllw(251,193,8);
+ofColor blu(0,111,151);
+ofColor dkblu(0,88,120);
+ofColor ltgry(192,191,191);
+ofColor medgry(103,103,103);
+ofColor chrcl(21,19,20);
+ofColor yllw(230,182,49);
 
 void Black()
 {
@@ -20,6 +22,16 @@ void Blue()
 void LtGray()
 {
 	ofSetColor(ltgry);
+}
+
+void MedGray()
+{
+	ofSetColor(medgry);
+}
+
+void DkBlue()
+{
+	ofSetColor(dkblu);
 }
 
 void Charcoal()
@@ -48,10 +60,22 @@ ofColor & blue()
 {
 	return blu;
 }
+
+ofColor & dkBlue()
+{
+	return blu;
+}
+
 ofColor & ltGray()
 {
 	return ltgry;
 }
+
+ofColor & medGray()
+{
+	return medgry;
+}
+
 ofColor & charcoal()
 {
 	return chrcl;
@@ -78,20 +102,22 @@ void label(string str, int x, int y)
 	lbl.drawString(str,x,y);
 }
 
-
 newSlider::newSlider(){
 	bPressed=false;
 	knob.setPressed(false);
+	startPos=0;
+	wasPressed=false;
 }
 
 newSlider::~newSlider(){
 
 }
 
-void newSlider::setup(string knobImg){
-	if(knobImg.length()){
-		knob.setup(64,64,knobImg);
+void newSlider::setup(string playImg, string pauseImg){
+	if(playImg.length()){
+		knob.setup(128,128,playImg,pauseImg);
 	}
+	track.loadImage("img/VideoTrack.png");
 }
 
 void newSlider::draw(int _x, int _y, int _w, int _h){
@@ -99,13 +125,17 @@ void newSlider::draw(int _x, int _y, int _w, int _h){
 	w=_w-_h;
 	h=_h;
 	White();
-	ofRoundedRect(x+knob.w/2,(y+knob.h/2)-8,_w-knob.w,_h/4,_h/8);
+	//ofRoundedRect(x+knob.w/2,(y+knob.h/2)-8,_w-knob.w,_h/4,_h/8);
+	track.draw(x,y,_w,_h);
 	knob.draw(x+knob.relPos.x,y,h,h);
 }
 bool newSlider::clickDown(int _x, int _y){
 	bool ret=false;
-	if(knob.clickDown(_x-knob.relPos.x, _y)){
+	if(knob.over(_x, _y)){
+		wasPressed = !knob.pressed();
+		knob.setPressed(true);
 		ret=bPressed=true;
+		startPos=_x;
 	}
 	else if(over(_x-h, _y)){
 		knob.setPressed(true);
@@ -119,8 +149,13 @@ bool newSlider::clickDown(int _x, int _y){
 }
 
 bool newSlider::clickUp(int x, int y){
-	bool ret=bPressed;
-	knob.clickUp();
+	bool ret=false;
+	//knob.clickUp();
+	if(startPos>0&&abs(startPos-x)<10&&wasPressed){
+		ret=!knob.pressed();
+		knob.setPressed(ret);
+	}
+	startPos=-1;
 	bPressed=false;
 	return ret;
 }

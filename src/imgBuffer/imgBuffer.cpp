@@ -13,15 +13,15 @@ imgBuffer::imgBuffer(){
 }
 
 imgBuffer::~imgBuffer(){
-	if ( buffers )
+	/*if ( buffers )
 	{
 		for(unsigned int i=0; i<nBuf; i++){
 			delete [] buffers[i];
-			buffers[i] = 0;
+			buffers[i] = NULL;
 		}
 		delete [] buffers;
-		buffers = 0;
-	}
+		buffers = NULL;
+	}*/
 }
 
 void imgBuffer::allocate(int num, int size){
@@ -29,10 +29,10 @@ void imgBuffer::allocate(int num, int size){
 	{
 		for(unsigned int i=0; i<nBuf; i++){
 			delete [] buffers[i];
-			buffers[i] = 0;
+			buffers[i] = NULL;
 		}
 		delete [] buffers;
-		buffers = 0;
+		buffers = NULL;
 	}
 
 	nBuf=num;
@@ -45,12 +45,14 @@ void imgBuffer::allocate(int num, int size){
 }
 
 bool imgBuffer::store(PBYTE pbuf){
-	bool ret=true;
-	if(nStored<nBuf&&nBuf){
-		memcpy(buffers[nStored++],pbuf,nSz);
+	if(buffers){
+		bool ret=true;
+		if(nStored<nBuf&&nBuf){
+			if(buffers[nStored]) memcpy(buffers[nStored++],pbuf,nSz);
+		}
+		else ret = false;
+		return ret;
 	}
-	else ret = false;
-	return ret;
 }
 
 void imgBuffer::resetStore(){

@@ -37,6 +37,7 @@ protected:
 	OBJECT_INFO* objectInfo;
 	UINT formatMultiplier;
 	PIXEL_FORMAT pixelFormat;
+	bool bReady;
 public:
 	UINT width,height,bufferSize;
 	bool newFrame;
@@ -48,6 +49,7 @@ public:
 	~highSpeedCam();
 	void open();
 	void open(void (* func)( OBJECT_INFO* pObjectInfo, IMAGE_INFO* pImageInfo ),OBJECT_INFO* objInfo);
+	bool ready();
 	void setFPS(int num);
 	void setRotation();
 	void handleError(RESULT result);
@@ -64,6 +66,7 @@ public:
 	// Stream controls
 	void snap(int);
 	void grab();
+	void stopGrab();
 	bool isCapturing();
 	void setCaptureMode();
 	int getExposureTime();

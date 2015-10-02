@@ -1,9 +1,11 @@
 #include "viewWorksHS.h"
+#include "../config.h"
 
 
 //#include "VwResourceType.h"
-
+//constructor
 highSpeedCam::highSpeedCam(){
+	//initialize a bunch of things to zero
 	camera=NULL;
 	GigE=NULL;
 	currentFPS=0;
@@ -14,9 +16,11 @@ highSpeedCam::highSpeedCam(){
 	formatMultiplier=0;
 	bufferSize=0;
 
+	//allocate the bmpInfo structure, and zero it out
 	BmpInfo1 = (BITMAPINFO*)new BYTE[(sizeof(BITMAPINFOHEADER)+256*sizeof(RGBQUAD))];
 	ZeroMemory(BmpInfo1, sizeof(BITMAPINFOHEADER));
-
+	
+	//populate the bmpInfo with info
 	BmpInfo1->bmiHeader.biSize		    = sizeof( BITMAPINFOHEADER );
 	BmpInfo1->bmiHeader.biPlanes		    = 1;	BmpInfo1->bmiHeader.biCompression	= BI_RGB;
 	BmpInfo1->bmiHeader.biClrImportant   = 0;
@@ -34,16 +38,10 @@ highSpeedCam::highSpeedCam(){
 	objectInfo = new OBJECT_INFO;
 }
 
+//deconstructor: everything is commented, because when it isn't, errors get thrown on exit
 highSpeedCam::~highSpeedCam(){
-
 	close();
-
-	if (BmpInfo1)
-	{
-		delete BmpInfo1;
-		BmpInfo1 = NULL;
-	}
-
+	/*
 	if (objectInfo)
 	{
 		delete objectInfo;
@@ -62,8 +60,14 @@ highSpeedCam::~highSpeedCam(){
 		GigE = NULL;
 	}
 
+	if (BmpInfo1)
+	{
+		delete BmpInfo1;
+		BmpInfo1 = NULL;
+	}*/
 }
 
+//initialize all of the camera components
 void highSpeedCam::init(){
 	GigE	=	 new VwGigE;
 	if ( NULL == GigE )
@@ -79,6 +83,7 @@ void highSpeedCam::init(){
 	}
 }
 
+//default store function- NOT USED (Pretty Sure?)
 void storeImage( OBJECT_INFO* pObjectInfo, IMAGE_INFO* pImageInfo ){
 	highSpeedCam* cam = (highSpeedCam*)pObjectInfo->pUserPointer;
 
@@ -92,43 +97,86 @@ void storeImage( OBJECT_INFO* pObjectInfo, IMAGE_INFO* pImageInfo ){
 	}*/
 }
 
+//default open function- NOT USED
 void highSpeedCam::open(){
 	objectInfo->pUserPointer = this;
 	open(storeImage,objectInfo);
 }
 
+//camera open function- func is the image callback function which is called when new data is received
+// objInfo carries the camera pointer
 void highSpeedCam::open(void (* func)( OBJECT_INFO* pObjectInfo, IMAGE_INFO* pImageInfo ),OBJECT_INFO* objInfo){
-	objInfo->pVwCamera = camera;
 
 	RESULT result = RESULT_ERROR;
 	result = GigE->OpenCamera((UINT)0, &camera, imageBufferNumber, 0, 0, 0, objInfo, func, NULL);//(*processFunction)
+	
+	//if opening the camera fails, throw an error
 	if(result != RESULT_SUCCESS){
 		cout << "Error " << result << " opening the camera" << endl;
 	}
+	//else anounce that the camera opened success
+	else cout << "Camera opened" << endl;
 
+	//if the camera pointer is null, exit
 	if ( NULL == camera )
 	{
 		return;
 	}
+
+	//store camera pointer in objInfo
+	objInfo->pVwCamera = camera;
 
 	//camera->SetPixelFormat(PIXEL_FORMAT_BAYRG8);
 	/*char szVendorName[ 256 ];
 	size_t cbVendor = sizeof( szVendorName );
 	camera->GetDeviceVendorName(0,szVendorName, &cbVendor);
 	cout << szVendorName  << endl;*/
-	
+
+	camera->SetTriggerMode(false);
+	camera->SetGain(GAIN_ANALOG_ALL,cfg().cameraGain);
+
+	camera->SetExposureTime(8000);
+	camera->SetExposureMode(EXPOSURE_MODE_TIMED);
+
+	camera->SetAcquisitionTimeOut(100);
+
+	int nCnt =0;
+
+	camera->GetHeartBeatTimeoutTryCount(nCnt);
+	cout << nCnt << " heartBeat\n";
+
+	/*cout << CameraSetCustomCommand (camera, "TriggerMode",  "Off"      ) << " Trigger mode\n";  // SetCustomCommand
+	cout << CameraSetCustomCommand (camera, "AcquisitionMode",  "Continuous") << " acq mode\n";
+	//CameraSetCustomCommand (camera, "TriggerSource","Software");  // SetCustomCommand
+	cout << CameraSetCustomCommand (camera, "ExposureTime", "8000") << " exp time\n";  // SetCustomCommand
+	cout << CameraSetCustomCommand (camera, "ExposureMode", "Timed") << " exp mode\n";  // SetCustomCommand
+	cout << CameraSetCustomCommand (camera, "GainSelector", "AnalogAll") << " gain mode\n";  // SetCustomCommand
+	cout << CameraSetCustomCommand (camera, "Gain", "6") << " gain val\n";  // SetCustomCommand
+	//CameraGrab( camera );
+	CameraSetAcquisitionTimeOut(camera,1000);*/
+
 	getImageSize();
 	allocateBuffer();
+
+	bReady=true;
 }
 
+//returns whether or not camera has been opened
+bool highSpeedCam::ready(){
+	return bReady;
+}
+
+//close the current camera, but not in a real way
 void highSpeedCam::close(){
 
 	if(isCapturing()&&camera){
 		//camera->AcquisitionStop();
-		//camera->Abort();
+		//CameraClose(camera);
+		bReady=false;
 	}
 }
 
+//grab image size from the camera
 void highSpeedCam::getImageSize(){
 	if ( NULL == camera )
 	{
@@ -162,7 +210,9 @@ void highSpeedCam::getImageSize(){
 	bufferSize = width*height*formatMultiplier;
 }
 
+// using image size and pixel format, allocate width*height*pixelFormat bytes
 void highSpeedCam::allocateBuffer(){
+	if(!camera) return;
 	if ( RESULT_SUCCESS != camera->ChangeBufferFormat( imageBufferNumber, width, height, pixelFormat ) )
 	{
 		cout << "Can't change buffer format" << endl;
@@ -170,11 +220,13 @@ void highSpeedCam::allocateBuffer(){
 	}
 }
 
+//set the camera to output a test image
 void highSpeedCam::testImage(TESTIMAGE test){
 	if(!camera) return;
 	camera->SetTestImage(test);
 }
 
+//none of these have been implemented; to set fps, etc, use the VIS software, and settings persist in camera memory.
 void highSpeedCam::setFPS(int num){
 
 }
@@ -201,6 +253,7 @@ void highSpeedCam::setPixelFormat(PIXEL_FORMAT){
 
 }
 
+//grab a single frame.
 void highSpeedCam::snap(int num=1){
 	if(!camera) return;
 	RESULT result = camera->Snap( num );
@@ -212,6 +265,7 @@ void highSpeedCam::snap(int num=1){
 	}
 }
 
+//begin continous capture
 void highSpeedCam::grab(){
 	if(!camera) return;
 	if(isCapturing()){
@@ -219,22 +273,18 @@ void highSpeedCam::grab(){
 		//camera->Abort();
 	}
 
-	/*camera->SetTriggerMode(false);
-	camera->SetGain(GAIN_ANALOG_ALL,3);
-	camera->SetTriggerMode(true);
-	camera->SetTriggerSource(TRIGGER_SOURCE_SW);
-
-	camera->SetExposureTime(8000);
-	camera->SetExposureMode(EXPOSURE_MODE_TRIGGERWIDTH);*/
-
+	//CameraSetCustomCommand(camera,"TriggerSoftware",NULL);
 	RESULT result = camera->Grab();
 	if(result == RESULT_SUCCESS){
 		cout << "Grabbing Frames"<<endl;
-
 	}
 	else{
 		cout << "Error "<< result << endl;
 	}
+}
+
+void highSpeedCam::stopGrab(){
+	camera->AcquisitionStop();
 }
 
 bool highSpeedCam::isCapturing(){

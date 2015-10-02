@@ -4,30 +4,35 @@
 
 void Black();
 void Charcoal();
+void MedGray();
 void LtGray();
 void Blue();
 void White();
 void Yellow();
 
 ofColor & ltGray();
+ofColor & medGray();
 ofColor & black();
 ofColor & charcoal();
 ofColor & blue();
 ofColor & white();
 ofColor & yellow();
 
-ofFont & label();
-void label(string str, int x, int y);
+//ofFont & label();
+//void label(string str, int x, int y);
 
 class newSlider : public ofInterObj{
-	ofButton knob;
 	void * dataPointer;
 	void (* cbFunc)(newSlider *,void *);
+	int startPos;
+	bool wasPressed;
 public:
+	ofButton knob;
+	ofImage track;
 	newSlider();
 	~newSlider();
 
-	void setup(string knobImg);
+	void setup(string playImg,string pauseImg);
 
 	void draw(int x, int y, int w, int h);
 	bool clickDown(int x, int y);

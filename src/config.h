@@ -16,6 +16,10 @@ struct configuration {
 	int framesPerSec;
 	bool autoMode;
 	float recordTime;
+	float fallPercent;
+	float raiseTime;
+	float cameraGain;
+	bool english;
 
 	bool loopVideo;
 	bool autoPlay;
@@ -23,6 +27,9 @@ struct configuration {
 	void readGeneralConfig(string cfgFile);
 	configuration(){
 		ofEnableDataPath();
+		english=true;
+		cameraGain=2;
+		autoMode=false;
 	}
 	void setup(){
 		readGeneralConfig("config.txt");

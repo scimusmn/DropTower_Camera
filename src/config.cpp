@@ -1,4 +1,5 @@
 #include "config.h"
+#include "interface/experimentInstructions.h"
 
 static configuration config;
 
@@ -40,6 +41,9 @@ void configuration::readGeneralConfig(string cfgFile){
 			else if(token[0]=="AUTO_PLAY_DELAY"){
 				autoPlayDelay=ofToFloat(token[1]);			//set fullscreen mode 
 			}
+			else if(token[0]=="AUTO_MODE"){
+				autoMode=ofToInt(token[1]);
+			}
 			/*else if(token[0]=="FRAME_SIZE"){
 				camWid=ofToInt(token[1].substr(0,token[1].find('x')));
 				camHgt=ofToInt(token[1].substr(token[1].find('x')+1));
@@ -49,6 +53,18 @@ void configuration::readGeneralConfig(string cfgFile){
 			}*/
 			else if(token[0]=="TIME_TO_RECORD"){
 				recordTime=ofToFloat(token[1]);
+			}
+			else if(token[0]=="FALL_PERCENT"){
+				fallPercent=ofToFloat(token[1]);
+			}
+			else if(token[0]=="TIME_TO_RAISE"){
+				raiseTime=ofToFloat(token[1]);
+			}
+			else if(token[0]=="EXPERIMENT"){
+				select().addExperiment(token[1]);
+			}
+			else if(token[0]=="CAMERA_GAIN"){
+				cameraGain=ofToFloat(token[1]);
 			}
 		}
 	}

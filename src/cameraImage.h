@@ -14,9 +14,9 @@ protected:
 	OBJECT_INFO objectInfo;
 	bool bAvailable;
 	long autoPlayTimer;
-	bool autoPlayLock;
 	long startRecord;
 public:
+	bool autoPlayLock;
 	int x,y,w,h;
 	PBYTE liveBuffer;
 	ofImage image;
@@ -30,6 +30,7 @@ public:
 	void init();
 	bool update();
 	void draw(int x, int y);
+	void draw(int x, int y, int w, int h);
 	void allocate();
 	void close();
 
@@ -48,6 +49,7 @@ public:
 	//record controls
 	void startRecording();
 	void stopRecording();
+	float recordingPercent();
 	bool isRecording(){ return bRecord; }
 	void store(IMAGE_INFO* pImageInfo);
 

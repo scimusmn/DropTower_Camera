@@ -17,9 +17,9 @@ void testApp::setup(){
 //--------------------------------------------------------------
 void testApp::update(){
 	
-	if(cam.update()){
+	//if(cam.update()){
 		inter.update();
-	}
+	//}
 	
 }
 
@@ -44,12 +44,17 @@ void testApp::keyPressed  (int key){
 		cam.reset();
 	}
 	if(key=='l'){
-		cam.liveFeed();
+		inter.startRaise();
 	}
 	if(key=='t') cout << cam.camera.getExposureTime() << endl;
+	if(key=='g') cam.camera.grab();
 	if(!cam.isLive()){
 		if(key==',') cam.pause(), cam.buffers.prevFrame();
 		if(key=='.') cam.pause(), cam.buffers.nextFrame();
+	}
+	if(key==27){
+		cout << "closing...\n";
+		cam.close();
 	}
 }
 
